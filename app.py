@@ -72,7 +72,10 @@ with tab1:
                 output_container.markdown(response.text)
                 st.session_state.problems_solved += 1
             except Exception as e:
-                output_container.error(f"Fault: {e}")
+                if "429" in str(e):
+                    output_container.warning("⚠️ System is busy. Please wait 20 seconds before your next question.")
+                else:
+                    output_container.error(f"Fault: {e}")
 
 with tab2:
     st.markdown("### 💬 Formula & Theory Oracle")
@@ -80,14 +83,18 @@ with tab2:
     if prompt := st.chat_input("Ask about A-Level/IGCSE Physics or Math concepts..."):
         with chat_container:
             st.chat_message("user").markdown(prompt)
-            model = genai.GenerativeModel('gemini-3.5-flash')
-            response = model.generate_content(f"Explain this engineering/math concept for an A-level student: {prompt}")
-            st.chat_message("assistant").markdown(response.text)
+            try:
+                model = genai.GenerativeModel('gemini-3.5-flash')
+                response = model.generate_content(f"Explain this concept for an A-level student: {prompt}")
+                st.chat_message("assistant").markdown(response.text)
+            except Exception as e:
+                if "429" in str(e):
+                    st.warning("⚠️ System busy. Please wait 20 seconds.")
+                else:
+                    st.error("Error connecting to Oracle.")
 
 with tab3:
     st.subheader("📚 A-Level/IGCSE Syllabus Formulas")
-    
-    # Library (No Search Bar)
     syllabus = {
         "📐 Pure Math": [("Quadratic", "$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$"), ("Sine Rule", "$\\frac{a}{\\sin A} = \\frac{b}{\\sin B}$"), ("Differentiation", "$\\frac{d}{dx}x^n = nx^{n-1}$")],
         "🚀 Kinematics": [("Displacement", "$s = ut + 0.5at^2$"), ("Velocity Squared", "$v^2 = u^2 + 2as$"), ("Angular Velocity", "$\\omega = 2\\pi f$")],
@@ -96,7 +103,6 @@ with tab3:
         "⚡ Electricity": [("Ohm's Law", "$V = IR$"), ("Power", "$P = IV$"), ("Capacitance", "$C = Q/V$"), ("Series Resistors", "$R_T = \\Sigma R$")],
         "🌊 Waves & Quantum": [("Wave Speed", "$v = f\\lambda$"), ("Photon Energy", "$E = hf$"), ("De Broglie", "$\\lambda = h/p$")]
     }
-    
     for cat, items in syllabus.items():
         with st.expander(cat, expanded=True):
             for name, eq in items: 
