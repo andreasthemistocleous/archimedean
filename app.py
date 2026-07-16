@@ -86,8 +86,20 @@ with tab2:
 
 with tab3:
     st.subheader("📚 A-Level/IGCSE Syllabus Formulas")
-    search = st.text_input("🔍 Search Formulas (e.g. 'Kinematics', 'Electricity', 'Integration')").lower()
     
+    # Pedagogical diagrams triggered for deeper understanding
+    st.markdown("### Core Physics Visuals")
+    st.write("Visualizing the relationship between variables is key to mastering these concepts.")
+    
+    col_img1, col_img2 = st.columns(2)
+    with col_img1:
+        st.markdown("")
+    with col_img2:
+        st.markdown("")
+    
+    st.markdown("---")
+    
+    # Comprehensive Syllabus Library (No Search Bar)
     syllabus = {
         "📐 Pure Math": [("Quadratic", "$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$"), ("Sine Rule", "$\\frac{a}{\\sin A} = \\frac{b}{\\sin B}$"), ("Differentiation", "$\\frac{d}{dx}x^n = nx^{n-1}$")],
         "🚀 Kinematics": [("Displacement", "$s = ut + 0.5at^2$"), ("Velocity Squared", "$v^2 = u^2 + 2as$"), ("Angular Velocity", "$\\omega = 2\\pi f$")],
@@ -98,9 +110,9 @@ with tab3:
     }
     
     for cat, items in syllabus.items():
-        if search in cat.lower() or any(search in name.lower() for name, _ in items):
-            with st.expander(cat, expanded=True):
-                for name, eq in items: st.markdown(f"- **{name}:** {eq}")
+        with st.expander(cat, expanded=True):
+            for name, eq in items: 
+                st.markdown(f"- **{name}:** {eq}")
 
 with tab4:
     st.subheader("🕒 Session History")
