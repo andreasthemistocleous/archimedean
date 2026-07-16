@@ -4,7 +4,7 @@ import random
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="The Archimedean | Premium", 
+    page_title="The Archimedean", 
     page_icon="🏛️", 
     layout="wide", 
     initial_sidebar_state="expanded"
@@ -14,6 +14,28 @@ st.set_page_config(
 if "authenticated" not in st.session_state: st.session_state.authenticated = False
 if "history" not in st.session_state: st.session_state.history = []
 if "problems_solved" not in st.session_state: st.session_state.problems_solved = 0
+
+# --- AUTHENTICATION GATE ---
+if not st.session_state.authenticated:
+    st.markdown("<h1 style='text-align: center; font-family: sans-serif; font-size: 3rem;'>ARCHIMEDEAN</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #666; font-size: 1.2rem;'>The Professional Mathematical Workspace</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.container(border=True):
+            st.subheader("Login")
+            user_input = st.text_input("Enter Access Password", type="password")
+            if st.button("Unlock Engine", use_container_width=True, type="primary"):
+                # Check against the password stored in Secrets
+                if user_input == st.secrets["access_password"]:
+                    st.session_state.authenticated = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password.")
+            
+            st.markdown("---")
+            st.markdown("For more information on how to gain access, reach out to our Instagram page: [@YourInstagramHandle](https://www.instagram.com/your-profile-link)")
+    st.stop()
 
 # --- QUOTE REPOSITORY ---
 quotes = [
@@ -27,30 +49,7 @@ quotes = [
 ]
 q_sidebar, q_above, q_below = random.sample(quotes, 3)
 
-# --- AUTHENTICATION GATE ---
-if not st.session_state.authenticated:
-    st.markdown("<h1 style='text-align: center; font-family: sans-serif; font-size: 3rem;'>ARCHIMEDEAN</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #666; font-size: 1.2rem;'>The Professional Mathematical Workspace</p>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        with st.container(border=True):
-            st.subheader("Login")
-            user_input = st.text_input("Enter Access Password", type="password")
-            if st.button("Unlock Engine", use_container_width=True, type="primary"):
-                if user_input == st.secrets["access_password"]:
-                    st.session_state.authenticated = True
-                    st.rerun()
-                else:
-                    st.error("Incorrect password.")
-            
-            st.markdown("---")
-            st.markdown("For more information on how to gain access, reach out to our Instagram page: [@YourInstagramHandle](https://www.instagram.com/your-profile-link)")
-    st.stop()
-
-# --- MAIN APP ---
-
-# 2. Sidebar
+# --- SIDEBAR ---
 with st.sidebar:
     st.markdown("<h1 style='text-align: center; font-family: serif; letter-spacing: 2px;'>ARCHIMEDEAN</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -64,13 +63,13 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"*{q_sidebar}*")
 
-# 3. Header
+# --- HEADER ---
 st.markdown(f"<p style='text-align: center; font-style: italic; color: #777;'>{q_above}</p>", unsafe_allow_html=True)
 st.title("🏛️ The Archimedean Interface")
 st.markdown(f"<p style='text-align: center; font-style: italic; color: #555;'>{q_below}</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# 4. Tabs
+# --- TABS ---
 tab1, tab2, tab3, tab4 = st.tabs(["🚀 Visual Solver", "💬 Formula Assistant", "📚 Reference Library", "🕒 Solution Archive"])
 
 with tab1:
