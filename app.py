@@ -11,31 +11,8 @@ st.set_page_config(
 )
 
 # Initialize Session State
-if "authenticated" not in st.session_state: st.session_state.authenticated = False
 if "history" not in st.session_state: st.session_state.history = []
 if "problems_solved" not in st.session_state: st.session_state.problems_solved = 0
-
-# --- AUTHENTICATION GATE ---
-if not st.session_state.authenticated:
-    st.markdown("<h1 style='text-align: center; font-family: sans-serif; font-size: 3rem;'>ARCHIMEDEAN</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #666; font-size: 1.2rem;'>The Professional Mathematical Workspace</p>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        with st.container(border=True):
-            st.subheader("Login")
-            user_input = st.text_input("Enter Access Password", type="password")
-            if st.button("Unlock Engine", use_container_width=True, type="primary"):
-                # Check against the password stored in Secrets
-                if user_input == st.secrets["access_password"]:
-                    st.session_state.authenticated = True
-                    st.rerun()
-                else:
-                    st.error("Incorrect password.")
-            
-            st.markdown("---")
-            st.markdown("For more information on how to gain access, reach out to our Instagram page: [@YourInstagramHandle](https://www.instagram.com/your-profile-link)")
-    st.stop()
 
 # --- QUOTE REPOSITORY ---
 quotes = [
