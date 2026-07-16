@@ -2,6 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 import requests
+import random # <--- NEW: For the rotating quotes
 
 # 1. Page Configuration (MUST BE FIRST)
 st.set_page_config(
@@ -24,7 +25,6 @@ if not st.session_state.authenticated:
     with col2:
         st.info("🔒 Enter your personal License Key to access the engine.")
         
-        # Link to buy a new key (Replace with your actual Gumroad link)
         st.markdown("<a href='https://your-gumroad-store.gumroad.com/l/archimedean' target='_blank'><button style='width: 100%; padding: 10px; background-color: #5b5b5b; color: white; border: none; border-radius: 5px; cursor: pointer;'>💳 Purchase a Personal License Key</button></a>", unsafe_allow_html=True)
         st.markdown(" ")
         
@@ -34,7 +34,6 @@ if not st.session_state.authenticated:
             if user_key:
                 with st.spinner("Verifying license..."):
                     try:
-                        # Contact Gumroad to verify the specific key
                         payload = {
                             "product_permalink": st.secrets["gumroad_product_permalink"],
                             "license_key": user_key
@@ -42,10 +41,9 @@ if not st.session_state.authenticated:
                         response = requests.post("https://api.gumroad.com/v2/licenses/verify", data=payload)
                         data = response.json()
                         
-                        # Check if the key is valid AND the subscription is active
                         if data.get("success") and not data.get("purchase", {}).get("subscription_cancelled_at"):
                             st.session_state.authenticated = True
-                            st.rerun() # Unlocks the app!
+                            st.rerun() 
                         else:
                             st.error("❌ Invalid, expired, or canceled license key.")
                     except Exception as e:
@@ -53,7 +51,7 @@ if not st.session_state.authenticated:
             else:
                 st.warning("Please enter a key.")
                 
-    st.stop() # Stops the rest of the app from loading
+    st.stop() 
 # --- END PAYWALL ---
 
 # Initialize session states
@@ -63,6 +61,18 @@ if "problems_solved" not in st.session_state:
     st.session_state.problems_solved = 0
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
+# --- DYNAMIC QUOTE REPOSITORY ---
+quotes = [
+    '"Give me a place to stand, and a lever long enough, and I will move the world." - Archimedes',
+    '"Mathematics is the queen of the sciences." - Carl Friedrich Gauss',
+    '"The book of nature is written in the language of mathematics." - Galileo Galilei',
+    '"Pure mathematics is, in its way, the poetry of logical ideas." - Albert Einstein',
+    '"There is no royal road to geometry." - Euclid',
+    '"What we know is a drop, what we don\'t know is an ocean." - Isaac Newton',
+    '"Nature is an infinite sphere of which the center is everywhere and the circumference nowhere." - Blaise Pascal'
+]
+current_quote = random.choice(quotes)
 
 # 2. Left Sidebar - The Archimedean Identity
 with st.sidebar:
@@ -85,7 +95,8 @@ with st.sidebar:
     st.metric(label="System Integrity", value="100%")
     
     st.markdown("---")
-    st.caption('"Give me a place to stand, and a lever long enough, and I will move the world." - Archimedes')
+    # This will change discretely on every user action
+    st.caption(f"*{current_quote}*")
 
 # 3. Main Workspace Header
 st.title("🏛️ The Archimedean Interface")
@@ -100,19 +111,12 @@ with tab1:
     
     with col_input:
         st.subheader("Define Parameters")
-        uploaded_file = st.file_uploader(
-            "Upload System Diagram or Equation", 
-            type=["png", "jpg", "jpeg"]
-        )
+        uploaded_file = st.file_uploader("Upload System Diagram or Equation", type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
             st.image(image, caption="Visual Data Registered", use_column_width=True)
 
-        user_problem = st.text_area(
-            "Set System Constraints & Variables:", 
-            height=120,
-            placeholder="e.g., Define boundaries for integration, or detail physical forces..."
-        )
+        user_problem = st.text_area("Set System Constraints & Variables:", height=120, placeholder="e.g., Define boundaries for integration, or detail physical forces...")
         solve_button = st.button("⚡ Execute Solution", use_container_width=True, type="primary")
 
     with col_output:
@@ -135,7 +139,6 @@ with tab1:
                             4. Highlight the final numerical truth.
                             """
                         ]
-                        
                         if user_problem: contents.append(f"Constraints: {user_problem}")
                         if uploaded_file is not None: contents.append(image)
                         
@@ -150,7 +153,6 @@ with tab1:
                             "title": user_problem[:40] + "..." if user_problem else "Visual Diagram Solution",
                             "solution": full_text
                         })
-                        
                     except Exception as e:
                         output_container.error(f"Critical Fault: {e}")
         else:
@@ -160,7 +162,6 @@ with tab1:
 with tab2:
     st.subheader("Query the Oracle")
     st.markdown("Ask for specific formulas, conceptual explanations, or general mathematical theory.")
-    
     chat_container = st.container(border=True, height=500)
     
     with chat_container:
@@ -168,7 +169,7 @@ with tab2:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
                 
-    if prompt := st.chat_input("e.g., What is the steady-flow energy equation? or Explain nodal analysis..."):
+    if prompt := st.chat_input("e.g., What is the steady-flow energy equation?"):
         with chat_container:
             with st.chat_message("user"):
                 st.markdown(prompt)
@@ -180,7 +181,6 @@ with tab2:
                 full_response = ""
                 try:
                     model = genai.GenerativeModel('gemini-3.5-flash')
-                    
                     chat_prompt = f"""
                     You are a highly advanced engineering and mathematics assistant.
                     Answer the following query clearly and concisely.
@@ -188,36 +188,93 @@ with tab2:
                     Provide brief, practical engineering context where applicable.
                     User Query: {prompt}
                     """
-                    
                     response = model.generate_content(chat_prompt, stream=True)
                     for chunk in response:
                         full_response += chunk.text
                         message_placeholder.markdown(full_response + "▌")
                     message_placeholder.markdown(full_response)
-                    
                 except Exception as e:
                     message_placeholder.error(f"Connection Error: {e}")
                     full_response = "Error retrieving data."
                     
         st.session_state.chat_history.append({"role": "assistant", "content": full_response})
 
-# --- TAB 3: REFERENCE LIBRARY ---
+# --- TAB 3: REFERENCE LIBRARY (IGCSE & A-LEVEL EXPANDED) ---
 with tab3:
-    st.subheader("Fundamental Constants")
-    st.markdown("Immutable truths for verifying physical simulations.")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        with st.expander("🔥 Thermodynamics"):
-            st.markdown("- **Specific Heat (Water):** $4.184 \\text{ kJ/kg\\cdot K}$")
-            st.markdown("- **Gas Constant (R):** $8.314 \\text{ J/mol\\cdot K}$")
-    with col2:
-        with st.expander("⚙️ Mechanics"):
-            st.markdown("- **Gravity (g):** $9.81 \\text{ m/s}^2$")
-            st.markdown("- **Newton's Second Law:** $\\Sigma F = m \\cdot a$")
-    with col3:
-        with st.expander("⚡ Circuitry"):
-            st.markdown("- **Ohm's Law:** $V = I \\cdot R$")
-            st.markdown("- **KCL:** $\\Sigma I_{in} = \\Sigma I_{out}$")
+    st.subheader("Standard Formulations Archive")
+    st.markdown("Search the core syllabus equations for standard Mathematics and Physics.")
+    
+    # The Search Bar
+    search_query = st.text_input("🔍 Search by keyword (e.g., 'Velocity', 'Ohm', 'Integration')").lower()
+    st.markdown("---")
+
+    # The Formula Dictionary
+    formulas = {
+        "📐 Pure Mathematics": [
+            ("Quadratic Formula", "$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$"),
+            ("Sine Rule", "$\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}$"),
+            ("Cosine Rule", "$a^2 = b^2 + c^2 - 2bc \\cos A$"),
+            ("Area of a Triangle", "$A = \\frac{1}{2}ab \\sin C$"),
+            ("Differentiation (Power Rule)", "$\\frac{d}{dx}(ax^n) = anx^{n-1}$"),
+            ("Integration (Power Rule)", "$\\int ax^n dx = \\frac{ax^{n+1}}{n+1} + C$"),
+            ("Logarithm Addition", "$\\log_a(xy) = \\log_a x + \\log_a y$"),
+            ("Logarithm Subtraction", "$\\log_a(\\frac{x}{y}) = \\log_a x - \\log_a y$")
+        ],
+        "🚀 Kinematics (SUVAT)": [
+            ("Velocity without displacement", "$v = u + at$"),
+            ("Displacement without final velocity", "$s = ut + \\frac{1}{2}at^2$"),
+            ("Velocity squared without time", "$v^2 = u^2 + 2as$"),
+            ("Displacement with average velocity", "$s = \\frac{u + v}{2}t$"),
+            ("Displacement without initial velocity", "$s = vt - \\frac{1}{2}at^2$")
+        ],
+        "⚙️ Forces & Dynamics": [
+            ("Newton's Second Law", "$\\Sigma F = ma$"),
+            ("Weight", "$W = mg$"),
+            ("Momentum", "$p = mv$"),
+            ("Impulse", "$\\Delta p = F \\Delta t$"),
+            ("Moment of a Force", "$M = Fd$"),
+            ("Friction (max limiting)", "$F \\le \\mu R$")
+        ],
+        "🔥 Work, Energy & Power": [
+            ("Work Done", "$W = Fd \\cos \\theta$"),
+            ("Kinetic Energy", "$E_k = \\frac{1}{2}mv^2$"),
+            ("Gravitational Potential Energy", "$E_p = mgh$"),
+            ("Power (Work over Time)", "$P = \\frac{W}{t}$"),
+            ("Power (Force and Velocity)", "$P = Fv$"),
+            ("Efficiency", "$\\text{Efficiency} = \\frac{\\text{Useful Energy Output}}{\\text{Total Energy Input}} \\times 100\\%$")
+        ],
+        "⚡ Electricity & Circuits": [
+            ("Ohm's Law", "$V = IR$"),
+            ("Electrical Power", "$P = VI = I^2R = \\frac{V^2}{R}$"),
+            ("Charge", "$Q = It$"),
+            ("Energy Transfer", "$E = VQ = VIt$"),
+            ("Resistors in Series", "$R_T = R_1 + R_2 + R_3 ...$"),
+            ("Resistors in Parallel", "$\\frac{1}{R_T} = \\frac{1}{R_1} + \\frac{1}{R_2} + \\frac{1}{R_3} ...$")
+        ],
+        "🌊 Waves & Optics": [
+            ("Wave Speed", "$v = f\\lambda$"),
+            ("Frequency and Time Period", "$f = \\frac{1}{T}$"),
+            ("Refractive Index (Snell's Law)", "$n = \\frac{\\sin i}{\\sin r}$"),
+            ("Critical Angle", "$\\sin c = \\frac{1}{n}$")
+        ]
+    }
+
+    # Render the formulas based on the search query
+    for category, items in formulas.items():
+        # Filter items that match the search query (in title or category)
+        matching_items = [
+            item for item in items 
+            if search_query in item[0].lower() or search_query in category.lower()
+        ]
+        
+        # Only show the category expander if there are matching results
+        if matching_items:
+            with st.expander(category, expanded=bool(search_query)):
+                for name, equation in matching_items:
+                    st.markdown(f"- **{name}:** {equation}")
+                    
+    if search_query and not any(search_query in item[0].lower() or search_query in category.lower() for items in formulas.values() for item in items):
+        st.info("No formulas found matching your search. Try asking the **Formula Assistant** tab!")
 
 # --- TAB 4: SOLUTION ARCHIVE ---
 with tab4:
