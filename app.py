@@ -3,13 +3,13 @@ import google.generativeai as genai
 from PIL import Image
 
 # 1. Page Configuration
+# 1. Page Configuration
 st.set_page_config(
     page_title="The Archimedean", 
-    page_icon="📐", 
+    page_icon="🏛️", 
     layout="wide", 
     initial_sidebar_state="expanded"
 )
-
 # Initialize session states
 if "history" not in st.session_state:
     st.session_state.history = []
