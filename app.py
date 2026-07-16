@@ -87,7 +87,103 @@ with tab1:
                 with st.spinner("Synthesizing mathematical truth..."):
                     try:
                         model = genai.GenerativeModel('gemini-3.5-flash')
-                        contents = [
-                            """You are the Archimedean computational engine. Solve the provided STEM problem step-by-step.
-                            1. Define Initial States & Variables.
-                            2.
+                        # Simplified string format to prevent syntax errors
+                        sys_instruction = "You are the Archimedean computational engine. Solve the STEM problem: 1. Define states. 2. State equations. 3. Show derivations in LaTeX. 4. State the final truth."
+                        
+                        contents = [sys_instruction]
+                        if user_problem: contents.append(f"Constraints: {user_problem}")
+                        if uploaded_file is not None: contents.append(image)
+                        
+                        response = model.generate_content(contents, stream=True)
+                        full_text = ""
+                        for chunk in response:
+                            full_text += chunk.text
+                            output_placeholder.markdown(full_text)
+                        
+                        st.session_state.problems_solved += 1
+                        st.session_state.history.append({
+                            "title": user_problem[:40] + "..." if user_problem else "Visual Diagram Solution",
+                            "solution": full_text
+                        })
+                    except Exception as e:
+                        output_container.error(f"Critical Fault: {e}")
+        else:
+            output_container.info("Awaiting parameters...")
+
+# --- TAB 2: FORMULA ASSISTANT ---
+with tab2:
+    st.subheader("Query the Oracle")
+    st.markdown("Ask for specific formulas, conceptual explanations, or general mathematical theory.")
+    chat_container = st.container(border=True, height=500)
+    
+    with chat_container:
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                
+    if prompt := st.chat_input("e.g., What is the steady-flow energy equation?"):
+        with chat_container:
+            with st.chat_message("user"):
+                st.markdown(prompt)
+        st.session_state.chat_history.append({"role": "user", "content": prompt})
+        
+        with chat_container:
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                full_response = ""
+                try:
+                    model = genai.GenerativeModel('gemini-3.5-flash')
+                    chat_prompt = f"You are an engineering assistant. Answer clearly, use LaTeX for formulas, and provide practical context. User Query: {prompt}"
+                    
+                    response = model.generate_content(chat_prompt, stream=True)
+                    for chunk in response:
+                        full_response += chunk.text
+                        message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response)
+                except Exception as e:
+                    message_placeholder.error(f"Connection Error: {e}")
+                    full_response = "Error retrieving data."
+                    
+        st.session_state.chat_history.append({"role": "assistant", "content": full_response})
+
+# --- TAB 3: REFERENCE LIBRARY ---
+with tab3:
+    st.subheader("Standard Formulations Archive")
+    search_query = st.text_input("🔍 Search by keyword (e.g., 'Velocity', 'Ohm', 'Integration')").lower()
+    st.markdown("---")
+
+    formulas = {
+        "📐 Pure Mathematics": [
+            ("Quadratic Formula", "$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$"),
+            ("Sine Rule", "$\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}$"),
+            ("Cosine Rule", "$a^2 = b^2 + c^2 - 2bc \\cos A$"),
+            ("Differentiation (Power Rule)", "$\\frac{d}{dx}(ax^n) = anx^{n-1}$")
+        ],
+        "🚀 Kinematics": [
+            ("Velocity", "$v = u + at$"),
+            ("Displacement", "$s = ut + \\frac{1}{2}at^2$"),
+            ("Velocity Squared", "$v^2 = u^2 + 2as$")
+        ],
+        "⚙️ Dynamics": [
+            ("Newton's Second Law", "$\\Sigma F = ma$"),
+            ("Weight", "$W = mg$"),
+            ("Momentum", "$p = mv$")
+        ]
+    }
+
+    for category, items in formulas.items():
+        matching = [item for item in items if search_query in item[0].lower() or search_query in category.lower()]
+        if matching:
+            with st.expander(category, expanded=bool(search_query)):
+                for name, equation in matching:
+                    st.markdown(f"- **{name}:** {equation}")
+
+# --- TAB 4: SOLUTION ARCHIVE ---
+with tab4:
+    st.subheader("Session History log")
+    if not st.session_state.history:
+        st.caption("No solutions executed yet.")
+    else:
+        for idx, item in enumerate(reversed(st.session_state.history)):
+            with st.expander(f"Solution #{len(st.session_state.history) - idx}"):
+                st.markdown(item['solution'])
