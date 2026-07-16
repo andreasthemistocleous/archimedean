@@ -26,11 +26,13 @@ quotes = [
     '"What we know is a drop, what we don\'t know is an ocean." - Isaac Newton',
     '"Nature is an infinite sphere of which the center is everywhere and the circumference nowhere." - Blaise Pascal',
     '"Number rules the universe." - Pythagoras',
-    '"God used beautiful mathematics in creating the world." - Paul Dirac'
+    '"God used beautiful mathematics in creating the world." - Paul Dirac',
+    '"Arithmetic is the soul of all sciences." - Carl Friedrich Gauss',
+    '"In mathematics, the art of proposing a question must be held of higher value than solving it." - Georg Cantor'
 ]
 
-# Randomly select two unique quotes
-q1, q2 = random.sample(quotes, 2)
+# Randomly select four unique quotes
+q1, q2, q3, q4 = random.sample(quotes, 4)
 
 # 2. Sidebar
 with st.sidebar:
@@ -44,10 +46,12 @@ with st.sidebar:
         st.error("🔴 Neural Core: OFFLINE")
     st.metric(label="Solutions Executed", value=st.session_state.problems_solved)
 
-# 3. Header with Dynamic Quotes
-st.markdown(f"<p style='text-align: center; font-style: italic; color: #555;'>{q1}</p>", unsafe_allow_html=True)
-st.title("🏛️ The Archimedean Interface")
+# 3. Header with Expanded Dynamic Quotes
+st.markdown(f"<p style='text-align: center; font-style: italic; color: #777;'>{q1}</p>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; font-style: italic; color: #555;'>{q2}</p>", unsafe_allow_html=True)
+st.title("🏛️ The Archimedean Interface")
+st.markdown(f"<p style='text-align: center; font-style: italic; color: #555;'>{q3}</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; font-style: italic; color: #777;'>{q4}</p>", unsafe_allow_html=True)
 st.markdown("---")
 
 # 4. Tabs
@@ -84,7 +88,6 @@ with tab3:
     st.subheader("📚 A-Level/IGCSE Syllabus Formulas")
     search = st.text_input("🔍 Search Formulas (e.g. 'Kinematics', 'Electricity', 'Integration')").lower()
     
-    # Comprehensive Syllabus Library
     syllabus = {
         "📐 Pure Math": [("Quadratic", "$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$"), ("Sine Rule", "$\\frac{a}{\\sin A} = \\frac{b}{\\sin B}$"), ("Differentiation", "$\\frac{d}{dx}x^n = nx^{n-1}$")],
         "🚀 Kinematics": [("Displacement", "$s = ut + 0.5at^2$"), ("Velocity Squared", "$v^2 = u^2 + 2as$"), ("Angular Velocity", "$\\omega = 2\\pi f$")],
