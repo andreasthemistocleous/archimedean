@@ -4,7 +4,7 @@ import random
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="The Archimedean", 
+    page_title="Archimedean Solver", 
     page_icon="🏛️", 
     layout="wide", 
     initial_sidebar_state="expanded"
