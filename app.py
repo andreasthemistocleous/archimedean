@@ -46,7 +46,7 @@ st.title("📐 The Archimedean Interface")
 st.markdown("---")
 
 # 4. Interface Tabs (Added the new Assistant Tab)
-tab1, tab2, tab3, tab4 = st.tabs(["🚀 Visual Solver", "💬 Formula Assistant", "📚 Reference Library", "🕒 Theorem Archive"])
+tab1, tab2, tab3, tab4 = st.tabs(["🚀 Visual Solver", "💬 Formula Assistant", "📚 Reference Library", "🕒 Solution Archive"])
 
 # --- TAB 1: THE CORE SOLVER (For specific, heavy problems) ---
 with tab1:
